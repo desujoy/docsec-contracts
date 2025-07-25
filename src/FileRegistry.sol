@@ -14,12 +14,7 @@ contract FileRegistry {
 
     mapping(bytes32 => FileRecord) public fileRecords;
 
-    event FileRegistered(
-        bytes32 indexed poseidonHash,
-        address indexed uploader,
-        uint256 timestamp,
-        string fileName
-    );
+    event FileRegistered(bytes32 indexed poseidonHash, address indexed uploader, uint256 timestamp, string fileName);
 
     constructor(address verifierAddress) {
         require(verifierAddress != address(0), "Invalid verifier address");
@@ -45,40 +40,24 @@ contract FileRegistry {
         bytes32 poseidonHash = bytes32(_publicSignals[0]);
 
         // 1. Integrity Check: Ensure this file content hasn't been registered before
-        require(
-            fileRecords[poseidonHash].uploader == address(0),
-            "FileRegistry: File content already registered"
-        );
+        require(fileRecords[poseidonHash].uploader == address(0), "FileRegistry: File content already registered");
 
         // 2. ZK Verification: Call the verifier contract to validate the proof.
         // The parameters are passed directly as the verifier expects them.
         require(verifier.verifyProof(_pA, _pB, _pC, _publicSignals), "FileRegistry: Invalid ZK proof");
 
         // 3. State Change: Store the file metadata on-chain
-        fileRecords[poseidonHash] = FileRecord({
-            uploader: msg.sender,
-            timestamp: block.timestamp,
-            fileName: _fileName
-        });
+        fileRecords[poseidonHash] = FileRecord({uploader: msg.sender, timestamp: block.timestamp, fileName: _fileName});
 
         // 4. Audit Trail: Emit an event for easy off-chain tracking
-        emit FileRegistered(
-            poseidonHash,
-            msg.sender,
-            block.timestamp,
-            _fileName
-        );
+        emit FileRegistered(poseidonHash, msg.sender, block.timestamp, _fileName);
     }
 
     /**
      * @dev Public view function to check a file's integrity record.
      * Anyone can call this off-chain without a transaction.
      */
-    function getFileRecord(bytes32 poseidonHash)
-        public
-        view
-        returns (address, uint256, string memory)
-    {
+    function getFileRecord(bytes32 poseidonHash) public view returns (address, uint256, string memory) {
         FileRecord memory record = fileRecords[poseidonHash];
         return (record.uploader, record.timestamp, record.fileName);
     }

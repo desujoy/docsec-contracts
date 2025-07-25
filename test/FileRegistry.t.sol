@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../src/FileRegistry.sol";
-import "../src/Verifier.sol"; 
+import "../src/Verifier.sol";
 
 contract MockVerifier is Groth16Verifier {
     bool private shouldPassProof;
@@ -18,15 +18,14 @@ contract MockVerifier is Groth16Verifier {
      * 2. Changed parameter data locations from `memory` to `calldata` to match the parent.
      */
     function verifyProof(
-        uint256[2] calldata /* _pA */,
-        uint256[2][2] calldata /* _pB */,
-        uint256[2] calldata /* _pC */,
+        uint256[2] calldata, /* _pA */
+        uint256[2][2] calldata, /* _pB */
+        uint256[2] calldata, /* _pC */
         uint256[1] calldata /* _publicSignals */
     ) public view override returns (bool) {
         return shouldPassProof;
     }
 }
-
 
 contract FileRegistryTest is Test {
     FileRegistry public fileRegistry;
@@ -49,9 +48,7 @@ contract FileRegistryTest is Test {
         // For the test, we need to pass the parameters that registerFile now expects
         fileRegistry.registerFile(dummyPA, dummyPB, dummyPC, dummyPublicSignals, "my_legal_document.pdf");
 
-        (address uploader, , string memory fileName) = fileRegistry.getFileRecord(
-            bytes32(dummyPublicSignals[0])
-        );
+        (address uploader,, string memory fileName) = fileRegistry.getFileRecord(bytes32(dummyPublicSignals[0]));
         assertEq(uploader, address(this));
         assertEq(fileName, "my_legal_document.pdf");
     }
