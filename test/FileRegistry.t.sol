@@ -18,12 +18,13 @@ contract MockVerifier is Groth16Verifier {
     }
 
     // --- FINAL FIX: Changed 'external' to 'public' to match the interface ---
-    function verifyProof(
-        uint256[2] calldata,
-        uint256[2][2] calldata,
-        uint256[2] calldata,
-        uint256[1] calldata
-    ) public view override returns (bool) { // <-- The fix is here!
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[1] calldata)
+        public
+        view
+        override
+        returns (bool)
+    {
+        // <-- The fix is here!
         return shouldPass;
     }
 }
@@ -49,7 +50,6 @@ contract FileRegistryTest is Test {
     bytes32 private constant FILE_HASH_2 = keccak256("file2 content");
     string private constant FILE_NAME_1 = "document.pdf";
     string private constant FILE_NAME_2 = "archive.zip";
-
 
     function setUp() public {
         owner = makeAddr("owner");
@@ -94,10 +94,10 @@ contract FileRegistryTest is Test {
     function test_Emit_UploaderAdded() public {
         vm.prank(owner);
         vm.expectEmit(true, true, false, true);
-        emit FileRegistry.UploaderAdded(uploader2); 
+        emit FileRegistry.UploaderAdded(uploader2);
         fileRegistry.addUploader(uploader2);
     }
-    
+
     function test_Revert_AddUploader_NotOwner() public {
         vm.prank(randomUser);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, randomUser));
@@ -111,7 +111,7 @@ contract FileRegistryTest is Test {
     }
 
     function test_OwnerCanRemoveUploader() public {
-        assertTrue(fileRegistry.isUploader(uploader1)); 
+        assertTrue(fileRegistry.isUploader(uploader1));
         vm.prank(owner);
         fileRegistry.removeUploader(uploader1);
         assertFalse(fileRegistry.isUploader(uploader1));
@@ -120,7 +120,7 @@ contract FileRegistryTest is Test {
     function test_Emit_UploaderRemoved() public {
         vm.prank(owner);
         vm.expectEmit(true, true, false, true);
-        emit FileRegistry.UploaderRemoved(uploader1); 
+        emit FileRegistry.UploaderRemoved(uploader1);
         fileRegistry.removeUploader(uploader1);
     }
 
@@ -131,7 +131,7 @@ contract FileRegistryTest is Test {
     function test_RegisterFile_Success() public {
         uint256[1] memory publicSignals = [uint256(FILE_HASH_1)];
         vm.prank(uploader1);
-        
+
         vm.expectEmit(true, true, false, true);
         emit FileRegistry.FileRegistered(FILE_HASH_1, uploader1, FILE_NAME_1);
         fileRegistry.registerFile(pA, pB, pC, publicSignals, FILE_NAME_1);
@@ -149,7 +149,7 @@ contract FileRegistryTest is Test {
         vm.expectRevert("FileRegistry: Caller is not an authorized uploader");
         fileRegistry.registerFile(pA, pB, pC, publicSignals, FILE_NAME_1);
     }
-    
+
     function test_Revert_RegisterFile_AlreadyExists() public {
         uint256[1] memory publicSignals = [uint256(FILE_HASH_1)];
         vm.prank(uploader1);
@@ -164,9 +164,9 @@ contract FileRegistryTest is Test {
         mockVerifier.setVerificationResult(false);
         uint256[1] memory publicSignals = [uint256(FILE_HASH_1)];
         vm.prank(uploader1);
-        
-        // vm.expectRevert("FileRegistry: Invalid ZK proof"); 
-        
+
+        // vm.expectRevert("FileRegistry: Invalid ZK proof");
+
         fileRegistry.registerFile(pA, pB, pC, publicSignals, FILE_NAME_1);
         assertEq(fileRegistry.getFileCount(), 1);
     }
@@ -194,7 +194,7 @@ contract FileRegistryTest is Test {
         uint256[1] memory publicSignals2 = [uint256(FILE_HASH_2)];
         vm.prank(uploader1);
         fileRegistry.registerFile(pA, pB, pC, publicSignals2, FILE_NAME_2);
-        
+
         assertEq(fileRegistry.getFileCount(), 2);
 
         (bytes32[] memory hashes, FileRegistry.FileRecord[] memory records) = fileRegistry.getAllFileRecords();

@@ -19,10 +19,10 @@ contract FileRegistry is Ownable {
     // Mapping from file content hash to file record
     mapping(bytes32 => FileRecord) private fileRecords;
     bytes32[] private allContentHashes;
-    
+
     // Mapping to track authorized uploaders
     mapping(address => bool) private uploaders;
-    
+
     // The ZK verifier contract
     Groth16Verifier private immutable verifier;
 
@@ -79,7 +79,7 @@ contract FileRegistry is Ownable {
     /**
      * @dev Register a file with zero-knowledge proof verification
      * @param _pA First component of the ZK proof
-     * @param _pB Second component of the ZK proof  
+     * @param _pB Second component of the ZK proof
      * @param _pC Third component of the ZK proof
      * @param _publicSignals Public signals for the ZK proof
      * @param _fileName Name of the file being registered
@@ -98,19 +98,12 @@ contract FileRegistry is Ownable {
         // );
 
         bytes32 contentHash = bytes32(_publicSignals[0]);
-        
+
         // Check if file already exists
-        require(
-            fileRecords[contentHash].uploader == address(0),
-            "FileRegistry: File content already registered"
-        );
+        require(fileRecords[contentHash].uploader == address(0), "FileRegistry: File content already registered");
 
         // Store the file record
-        fileRecords[contentHash] = FileRecord({
-            uploader: msg.sender,
-            timestamp: block.timestamp,
-            fileName: _fileName
-        });
+        fileRecords[contentHash] = FileRecord({uploader: msg.sender, timestamp: block.timestamp, fileName: _fileName});
 
         allContentHashes.push(contentHash);
 
@@ -124,10 +117,10 @@ contract FileRegistry is Ownable {
      * @return timestamp When the file was registered
      * @return fileName Name of the file
      */
-    function getFileRecord(bytes32 contentHash) 
-        external 
-        view 
-        returns (address uploader, uint256 timestamp, string memory fileName) 
+    function getFileRecord(bytes32 contentHash)
+        external
+        view
+        returns (address uploader, uint256 timestamp, string memory fileName)
     {
         FileRecord storage record = fileRecords[contentHash];
         require(record.uploader != address(0), "FileRegistry: File does not exist");
@@ -141,19 +134,15 @@ contract FileRegistry is Ownable {
      * @return records An array of all file records.
      * @notice This function can be gas-intensive if the number of files is large.
      */
-    function getAllFileRecords() 
-        external 
-        view 
-        returns (bytes32[] memory contentHashes, FileRecord[] memory records) 
-    {
+    function getAllFileRecords() external view returns (bytes32[] memory contentHashes, FileRecord[] memory records) {
         uint256 count = allContentHashes.length;
-        
+
         // Return the array of keys directly
         contentHashes = allContentHashes;
 
         // Initialize the records array to be filled
         records = new FileRecord[](count);
-        
+
         // Loop through the keys and populate the records array
         for (uint256 i = 0; i < count; i++) {
             bytes32 hash = allContentHashes[i];
